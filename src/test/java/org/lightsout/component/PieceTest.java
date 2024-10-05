@@ -20,4 +20,13 @@ class PieceTest {
         assertEquals(piece.getHeight(), 2);
     }
 
+    @Test
+    void testAmountOfXs() {
+        Piece piece1 = new Piece(".XX,XX.");
+        assertEquals(piece1.getAmountOfXs(), 4);
+
+        Piece piece2 = new Piece(".X,XX,.X,X.");
+        assertEquals(piece2.getAmountOfXs(), 5);
+    }
+
 }
