@@ -2,23 +2,26 @@ package org.lightsout.component;
 
 import org.lightsout.model.Coordinate;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
 public class Puzzle implements Cloneable {
 
     private int[][] cells;
-    private final int dimension;
+    private final int width;
+    private final int height;
     private final int depth;
 
     public Puzzle(String line1, String line2) { // 100,101,011
         String[] tokens = line2.split(",");
-        this.cells = new int[tokens.length][tokens.length];
-        this.dimension = tokens.length;
+        this.height = tokens.length;
+        this.width = tokens[0].length();
+        this.cells = new int[this.height][this.width];
         this.depth = Integer.parseInt(line1);
 
-        for (int i = 0; i < tokens.length; i++) {
-            for (int j = 0; j < tokens.length; j++) {
+        for (int i = 0; i < this.height; i++) {
+            for (int j = 0; j < this.width; j++) {
                 this.cells[i][j] = Integer.parseInt(String.valueOf(tokens[i].charAt(j)));
             }
         }
@@ -26,14 +29,6 @@ public class Puzzle implements Cloneable {
 
     int[][] getCells() {
         return this.cells;
-    }
-
-    int getDimension() {
-        return this.dimension;
-    }
-
-    int getDepth() {
-        return this.depth;
     }
 
     int getCellValue(Coordinate coordinate) {
@@ -55,14 +50,14 @@ public class Puzzle implements Cloneable {
      * @param pieces the set of pieces
      * @return if the puzzle is solvable given this set of pieces
      */
-    public boolean isSolvable(Set<Piece> pieces) {
+    public boolean isSolvable(Collection<Piece> pieces) {
         int xCount = 0;
         for (Piece piece : pieces)
             xCount += piece.getAmountOfXs();
 
         int totalRemainderTo0 = 0;
-        for (int i = 0; i < this.dimension; i++) {
-            for (int j = 0; j < this.dimension; j++) {
+        for (int i = 0; i < this.height; i++) {
+            for (int j = 0; j < this.width; j++) {
                 totalRemainderTo0 += this.depth - this.cells[i][j];
             }
         }
@@ -70,21 +65,31 @@ public class Puzzle implements Cloneable {
         return (xCount - totalRemainderTo0) % this.depth == 0;
     }
 
+    public boolean isSolved() {
+        for (int i = 0; i < this.height; i++) {
+            for (int j = 0; j < this.width; j++) {
+                if (cells[i][j] != 0)
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
     /**
      * Gives all possible coordinates to place the piece in the puzzle.
      *
-     * @param pieceWidth the width of the piece
-     * @param pieceHeight the height of the piece
+     * @param piece the piece to place
      * @return a set of legal coordinates to place the piece
      */
-    public Set<Coordinate> getLegalCoordinates(int pieceWidth, int pieceHeight) {
+    public Set<Coordinate> getLegalCoordinates(Piece piece) {
         Set<Coordinate> legalCoordinates = new HashSet<>();
 
-        for (int i = 0; i < this.dimension; i++) {
-            for (int j = 0; j < this.dimension; j++) {
+        for (int i = 0; i < this.height; i++) {
+            for (int j = 0; j < this.width; j++) {
                 Coordinate coordinate = new Coordinate(i, j);
 
-                if (doesPieceFit(pieceWidth, pieceHeight, coordinate))
+                if (doesPieceFit(piece.getWidth(), piece.getHeight(), coordinate))
                     legalCoordinates.add(coordinate);
             }
         }
@@ -128,16 +133,16 @@ public class Puzzle implements Cloneable {
     @Override
     protected Puzzle clone() throws CloneNotSupportedException {
         Puzzle clonedPuzzle = (Puzzle) super.clone();
-        clonedPuzzle.cells = new int[this.dimension][this.dimension];
+        clonedPuzzle.cells = new int[this.height][this.width];
 
-        for (int i = 0; i < this.dimension; i++) {
+        for (int i = 0; i < this.height; i++) {
             clonedPuzzle.cells[i] = this.cells[i].clone();
         }
 
         return clonedPuzzle;
     }
 
-    private Puzzle cloneP() {
+    public Puzzle cloneP() {
         try {
             return clone();
         } catch (CloneNotSupportedException e) {
@@ -147,9 +152,23 @@ public class Puzzle implements Cloneable {
     }
 
     private boolean doesPieceFit(int pieceWidth, int pieceHeight, Coordinate coordinate) {
-        boolean fitsWidth = coordinate.y() + pieceWidth <= this.dimension;
-        boolean fitsHeight = coordinate.x() + pieceHeight <= this.dimension;
+        boolean fitsWidth = coordinate.y() + pieceWidth <= this.width;
+        boolean fitsHeight = coordinate.x() + pieceHeight <= this.height;
         return fitsWidth && fitsHeight;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+
+        for (int i = 0; i < this.height; i++) {
+            for (int j = 0; j < this.width; j++) {
+                builder.append(cells[i][j]).append(" ");
+            }
+            builder.append("\n");
+        }
+
+        return builder.toString();
     }
 
 }

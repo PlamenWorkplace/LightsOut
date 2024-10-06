@@ -6,4 +6,9 @@ public record Coordinate(int x, int y) {
         return new Coordinate(x, y);
     }
 
+    @Override
+    public String toString() {
+        return x + "," + y;
+    }
+
 }

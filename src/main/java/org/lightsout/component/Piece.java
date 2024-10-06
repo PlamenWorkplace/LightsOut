@@ -2,6 +2,8 @@ package org.lightsout.component;
 
 import org.lightsout.model.Coordinate;
 
+import java.util.Arrays;
+
 public class Piece {
 
     private final char[][] cells;
@@ -29,6 +31,10 @@ public class Piece {
         return this.width;
     }
 
+    public int getSize() {
+        return this.height * this.width;
+    }
+
     int getAmountOfXs() {
         int amountOfXs = 0;
 
@@ -44,6 +50,20 @@ public class Piece {
 
     char getCellValue(Coordinate coordinate) {
         return this.cells[coordinate.x()][coordinate.y()];
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+
+        for (int i = 0; i < this.height; i++) {
+            for (int j = 0; j < this.width; j++) {
+                builder.append(cells[i][j]).append(" ");
+            }
+            builder.append("\n");
+        }
+
+        return builder.toString();
     }
 
 }

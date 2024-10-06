@@ -22,7 +22,6 @@ public class PuzzleTest {
         assertEquals(puzzle.getCellValue(Coordinate.of(2, 0)), 0);
         assertEquals(puzzle.getCellValue(Coordinate.of(2, 1)), 1);
         assertEquals(puzzle.getCellValue(Coordinate.of(2, 2)), 1);
-        assertEquals(puzzle.getDimension(), 3);
     }
 
     @Test
@@ -58,7 +57,7 @@ public class PuzzleTest {
         Puzzle puzzle = new Puzzle("2", "100,101,011");
         Piece piece = new Piece("X,X,X");
 
-        Set<Coordinate> legalCoordinates = puzzle.getLegalCoordinates(piece.getWidth(), piece.getHeight());
+        Set<Coordinate> legalCoordinates = puzzle.getLegalCoordinates(piece);
 
         assertEquals(legalCoordinates.size(), 3);
         assertTrue(legalCoordinates.contains(Coordinate.of(0, 0)));
@@ -85,6 +84,15 @@ public class PuzzleTest {
 
         pieces.add(new Piece("X"));
         assertFalse(puzzle.isSolvable(pieces));
+    }
+
+    @Test
+    void testPuzzleIsSolved() {
+        Puzzle puzzle1 = new Puzzle("2", "000,000,000");
+        assertTrue(puzzle1.isSolved());
+
+        Puzzle puzzle2 = new Puzzle("2", "001,000,000");
+        assertFalse(puzzle2.isSolved());
     }
 
 }
