@@ -21,7 +21,7 @@ public class LightsOut {
         String line3 = "";
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(
-                Objects.requireNonNull(classLoader.getResourceAsStream("02.txt")), StandardCharsets.UTF_8))) {
+                Objects.requireNonNull(classLoader.getResourceAsStream("09.txt")), StandardCharsets.UTF_8))) {
             line1 = reader.readLine();
             line2 = reader.readLine();
             line3 = reader.readLine();

@@ -4,48 +4,38 @@ import org.lightsout.component.Piece;
 import org.lightsout.component.Puzzle;
 import org.lightsout.model.Coordinate;
 
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 public class Worker implements Runnable {
 
     private static final Logger LOGGER = Logger.getLogger(Worker.class.getName());
-    private static final ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(1);
+    private static boolean FINISHED = false;
 
     private final Puzzle solvingPuzzle;
     private final Map<Integer, Piece> pieces;
-    private final int biggestPieceIndex;
     private final Coordinate[] currentCoordinates;
 
     Worker(Puzzle solvingPuzzle, Map<Integer, Piece> pieces, Coordinate[] currentCoordinates) {
         this.solvingPuzzle = solvingPuzzle;
         this.pieces = pieces;
         this.currentCoordinates = currentCoordinates;
-
-        int biggestPieceSize = 0;
-        int biggestPieceIndex = -1;
-        for (Map.Entry<Integer, Piece> entry : pieces.entrySet()) {
-            Piece piece = entry.getValue();
-            int size = piece.getSize();
-
-            if (size > biggestPieceSize) {
-                biggestPieceSize = size;
-                biggestPieceIndex = entry.getKey();
-            }
-        }
-        this.biggestPieceIndex = biggestPieceIndex;
     }
 
-    @Override
     public void run() {
-//        LOGGER.info("Thread id: " + Thread.currentThread().threadId());
-        if (!pieces.isEmpty()) {
-            Piece biggestPiece = this.pieces.remove(biggestPieceIndex);
+        if (Thread.currentThread().isInterrupted() || FINISHED)
+            return;
 
+//        LOGGER.info("Thread id: " + Thread.currentThread().threadId());
+        Iterator<Map.Entry<Integer, Piece>> iterator = this.pieces.entrySet().iterator();
+
+        if (iterator.hasNext()) {
+            Map.Entry<Integer, Piece> nextEntry = iterator.next();
+            int biggestPieceIndex = nextEntry.getKey();
+            Piece biggestPiece = this.pieces.remove(biggestPieceIndex);
             Set<Coordinate> legalCoordinates = solvingPuzzle.getLegalCoordinates(biggestPiece);
 
             for (Coordinate coordinate : legalCoordinates) {
@@ -61,17 +51,17 @@ public class Worker implements Runnable {
                     newCoordinates[biggestPieceIndex] = coordinate;
                     Map<Integer, Piece> clonedPieces = new LinkedHashMap<>(this.pieces);
                     Worker worker = new Worker(newPuzzle, clonedPieces, newCoordinates);
-                    EXECUTOR_SERVICE.submit(worker);
+                    worker.run();
                 }
             }
         } else {
             if (solvingPuzzle.isSolved()) {
-                synchronized (Worker.class) {
-                    EXECUTOR_SERVICE.shutdownNow();
-                    LOGGER.info("Thread id: " + Thread.currentThread().threadId() + ": PUZZLE SOLVED!");
-
-                    for (Coordinate coordinate : currentCoordinates)
-                        System.out.print(coordinate + " ");
+                synchronized (Worker.this) {
+                    if (!FINISHED) {
+                        FINISHED = true;
+                        for (Coordinate coordinate : currentCoordinates)
+                            System.out.print(coordinate + " ");
+                    }
                 }
             }
         }

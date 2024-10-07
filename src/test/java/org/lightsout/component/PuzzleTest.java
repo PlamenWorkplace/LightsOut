@@ -95,4 +95,13 @@ public class PuzzleTest {
         assertFalse(puzzle2.isSolved());
     }
 
+    @Test
+    void testNeededMinSize() {
+        Puzzle puzzle1 = new Puzzle("2", "011,000,100");
+        assertEquals(puzzle1.neededMinSize(), 9);
+
+        Puzzle puzzle2 = new Puzzle("2", "100,000,100");
+        assertEquals(puzzle2.neededMinSize(), 3);
+    }
+
 }

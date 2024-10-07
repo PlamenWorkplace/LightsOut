@@ -51,6 +51,11 @@ public class Puzzle implements Cloneable {
      * @return if the puzzle is solvable given this set of pieces
      */
     public boolean isSolvable(Collection<Piece> pieces) {
+//        if (pieces.size() <= 4) {
+//            if (insufficientPieces(pieces))
+//                return false;
+//        }
+
         int xCount = 0;
         for (Piece piece : pieces)
             xCount += piece.getAmountOfXs();
@@ -58,11 +63,51 @@ public class Puzzle implements Cloneable {
         int totalRemainderTo0 = 0;
         for (int i = 0; i < this.height; i++) {
             for (int j = 0; j < this.width; j++) {
-                totalRemainderTo0 += this.depth - this.cells[i][j];
+                if (this.cells[i][j] != 0)
+                    totalRemainderTo0 += this.depth - this.cells[i][j];
             }
         }
 
+        if (xCount - totalRemainderTo0 < 0) return false;
+
         return (xCount - totalRemainderTo0) % this.depth == 0;
+    }
+
+    private boolean insufficientPieces(Collection<Piece> pieces) {
+        int piecesSize = 0;
+        for (Piece piece : pieces)
+            piecesSize += piece.getSize();
+
+        int puzzleNeededSize = neededMinSize();
+
+        return puzzleNeededSize > (piecesSize / 2);
+    }
+
+    int neededMinSize() {
+        int minRow = this.height, maxRow = -1;
+        int minCol = this.width, maxCol = -1;
+
+        // Find the bounding box of all '1's in the matrix
+        for (int i = 0; i < this.height; i++) {
+            for (int j = 0; j < this.width; j++) {
+                if (this.cells[i][j] != 0) {  // Look for '1's
+                    minRow = Math.min(minRow, i);
+                    maxRow = Math.max(maxRow, i);
+                    minCol = Math.min(minCol, j);
+                    maxCol = Math.max(maxCol, j);
+                }
+            }
+        }
+
+        // If no '1' was found, return 0 (no need to flip anything)
+        if (minRow == this.height) return 0;
+
+        // Calculate the size of the minimal bounding box containing all '1's
+        int numRows = maxRow - minRow + 1;
+        int numCols = maxCol - minCol + 1;
+
+        // Return the area of the minimal bounding box
+        return numRows * numCols;
     }
 
     public boolean isSolved() {
