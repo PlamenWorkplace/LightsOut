@@ -80,10 +80,10 @@ public class PuzzleTest {
         Piece piece5 = new Piece(".XX,XX.");
         pieces.add(piece5);
 
-        assertTrue(puzzle.isSolvable(pieces));
+        assertTrue(puzzle.isSolvable(pieces).isMathPossible());
 
         pieces.add(new Piece("X"));
-        assertFalse(puzzle.isSolvable(pieces));
+        assertFalse(puzzle.isSolvable(pieces).isMathPossible());
     }
 
     @Test
@@ -96,12 +96,15 @@ public class PuzzleTest {
     }
 
     @Test
-    void testNeededMinSize() {
-        Puzzle puzzle1 = new Puzzle("2", "011,000,100");
-        assertEquals(puzzle1.neededMinSize(), 9);
+    void testGetTotalRemainderTo0AfterApplying() {
+        Puzzle puzzle = new Puzzle("2", "011,000,100");
+        Piece piece = new Piece("X,X,X");
 
-        Puzzle puzzle2 = new Puzzle("2", "100,000,100");
-        assertEquals(puzzle2.neededMinSize(), 3);
+        int remainder1 = puzzle.getTotalRemainderTo0AfterApplying(piece, Coordinate.of(0, 0));
+        assertEquals(remainder1, 2);
+
+        int remainder2 = puzzle.getTotalRemainderTo0AfterApplying(piece, Coordinate.of(0, 2));
+        assertEquals(remainder1, 2);
     }
 
 }

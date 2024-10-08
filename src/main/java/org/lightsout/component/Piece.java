@@ -2,8 +2,6 @@ package org.lightsout.component;
 
 import org.lightsout.model.Coordinate;
 
-import java.util.Arrays;
-
 public class Piece {
 
     private final char[][] cells;
@@ -35,7 +33,7 @@ public class Piece {
         return this.height * this.width;
     }
 
-    int getAmountOfXs() {
+    public int getAmountOfXs() {
         int amountOfXs = 0;
 
         for (int i = 0; i < this.height; i++) {

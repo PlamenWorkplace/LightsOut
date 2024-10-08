@@ -16,9 +16,9 @@ public class LightsOut {
 
     public static void main(String[] args) {
         ClassLoader classLoader = LightsOut.class.getClassLoader();
-        String line1 = "";
-        String line2 = "";
-        String line3 = "";
+        String line1;
+        String line2;
+        String line3;
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(
                 Objects.requireNonNull(classLoader.getResourceAsStream("09.txt")), StandardCharsets.UTF_8))) {
@@ -27,7 +27,7 @@ public class LightsOut {
             line3 = reader.readLine();
         } catch (IOException e) {
             LOGGER.severe("Could not read file: " + e);
-            System.exit(1);
+            return;
         }
 
         Game game = new Game(line1, line2, line3);

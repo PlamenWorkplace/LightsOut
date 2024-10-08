@@ -3,6 +3,7 @@ package org.lightsout.game;
 import org.lightsout.component.Piece;
 import org.lightsout.component.Puzzle;
 import org.lightsout.model.Coordinate;
+import org.lightsout.model.Solvability;
 
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -13,7 +14,7 @@ import java.util.logging.Logger;
 public class Worker implements Runnable {
 
     private static final Logger LOGGER = Logger.getLogger(Worker.class.getName());
-    private static boolean FINISHED = false;
+    private static volatile boolean FINISHED = false;
 
     private final Puzzle solvingPuzzle;
     private final Map<Integer, Piece> pieces;
@@ -45,13 +46,19 @@ public class Worker implements Runnable {
 //                        "\nOld puzzle: \n" + solvingPuzzle +
 //                        "\nPiece applied: \n" + biggestPiece +
 //                        "\nNew puzzle: \n" + newPuzzle +
+//                        "\nCoordinate: \n" + coordinate +
 //                        "\nPieces left: " + this.pieces.size());
-                if (newPuzzle.isSolvable(this.pieces.values())) {
+
+                Solvability solvability = newPuzzle.isSolvable(this.pieces.values());
+                if (solvability.isMathPossible() && solvability.sufficientXs()) {
                     Coordinate[] newCoordinates = cloneCoordinatesArray();
                     newCoordinates[biggestPieceIndex] = coordinate;
                     Map<Integer, Piece> clonedPieces = new LinkedHashMap<>(this.pieces);
                     Worker worker = new Worker(newPuzzle, clonedPieces, newCoordinates);
                     worker.run();
+                } else if (!solvability.sufficientXs()) {
+                    // next coordinates won't have sufficient Xs either
+                    break;
                 }
             }
         } else {
