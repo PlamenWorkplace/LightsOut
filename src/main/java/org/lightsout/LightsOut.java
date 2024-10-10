@@ -2,6 +2,9 @@ package org.lightsout;
 
 import org.lightsout.game.Game;
 
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import java.io.BufferedReader;
@@ -13,15 +16,23 @@ import java.util.Objects;
 public class LightsOut {
 
     private static final Logger LOGGER = Logger.getLogger(LightsOut.class.getName());
+    // set programmatically so reviewer doesn't have to set VM arguments manually.
+    private static final Level LOG_LEVEL = Level.WARNING;
 
     public static void main(String[] args) {
+        Logger rootLogger = LogManager.getLogManager().getLogger("");
+        rootLogger.setLevel(LOG_LEVEL);
+        for (Handler h : rootLogger.getHandlers()) {
+            h.setLevel(LOG_LEVEL);
+        }
+
         ClassLoader classLoader = LightsOut.class.getClassLoader();
         String line1;
         String line2;
         String line3;
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(
-                Objects.requireNonNull(classLoader.getResourceAsStream("09.txt")), StandardCharsets.UTF_8))) {
+                Objects.requireNonNull(classLoader.getResourceAsStream("games/01.txt")), StandardCharsets.UTF_8))) {
             line1 = reader.readLine();
             line2 = reader.readLine();
             line3 = reader.readLine();

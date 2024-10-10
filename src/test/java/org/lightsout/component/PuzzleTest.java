@@ -2,8 +2,10 @@ package org.lightsout.component;
 
 import org.junit.jupiter.api.Test;
 import org.lightsout.model.Coordinate;
+import org.lightsout.model.PieceInfo;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -68,21 +70,21 @@ public class PuzzleTest {
     @Test
     void testPuzzleIsSolvable() {
         Puzzle puzzle = new Puzzle("2", "011,000,100");
-        Set<Piece> pieces = new HashSet<>() {};
+        List<PieceInfo> pieces = new ArrayList<>() {};
         Piece piece1 = new Piece("X,X,X");
-        pieces.add(piece1);
+        pieces.add(new PieceInfo(piece1, 1));
         Piece piece2 = new Piece(".X,XX");
-        pieces.add(piece2);
+        pieces.add(new PieceInfo(piece1, 2));
         Piece piece3 = new Piece("XX,X.");
-        pieces.add(piece3);
+        pieces.add(new PieceInfo(piece1, 3));
         Piece piece4 = new Piece("XX");
-        pieces.add(piece4);
+        pieces.add(new PieceInfo(piece1, 4));
         Piece piece5 = new Piece(".XX,XX.");
-        pieces.add(piece5);
+        pieces.add(new PieceInfo(piece1, 5));
 
         assertTrue(puzzle.isSolvable(pieces).isMathPossible());
 
-        pieces.add(new Piece("X"));
+        pieces.add(new PieceInfo(new Piece("X"), 6));
         assertFalse(puzzle.isSolvable(pieces).isMathPossible());
     }
 
@@ -104,7 +106,7 @@ public class PuzzleTest {
         assertEquals(remainder1, 2);
 
         int remainder2 = puzzle.getTotalRemainderTo0AfterApplying(piece, Coordinate.of(0, 2));
-        assertEquals(remainder1, 2);
+        assertEquals(remainder2, 2);
     }
 
 }

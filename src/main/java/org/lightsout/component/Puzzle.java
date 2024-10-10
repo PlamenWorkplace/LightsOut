@@ -1,15 +1,13 @@
 package org.lightsout.component;
 
 import org.lightsout.model.Coordinate;
+import org.lightsout.model.PieceInfo;
 import org.lightsout.model.Solvability;
 
 import java.util.*;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class Puzzle implements Cloneable {
-
-    private static final Logger LOGGER = Logger.getLogger(Puzzle.class.getName());
 
     private int[][] cells;
     private final int width;
@@ -50,14 +48,14 @@ public class Puzzle implements Cloneable {
      * Overall, this method helps avoid unnecessary attempts to solve the puzzle when it is
      * mathematically impossible based on the pieces provided.
      *
-     * @param pieces the set of pieces
+     * @param piecesInfo the set of pieces
      * @return if the puzzle is solvable given this set of pieces
      */
-    public Solvability isSolvable(Collection<Piece> pieces) {
+    public Solvability isSolvable(List<PieceInfo> piecesInfo) {
         int piecesXCount = 0;
 
-        for (Piece piece : pieces)
-            piecesXCount += piece.getAmountOfXs();
+        for (PieceInfo pieceInfo : piecesInfo)
+            piecesXCount += pieceInfo.piece().getAmountOfXs();
 
         int puzzleTotalRemainderTo0 = 0;
         for (int i = 0; i < this.height; i++) {
@@ -91,6 +89,30 @@ public class Puzzle implements Cloneable {
      * @return a set of legal coordinates to place the piece
      */
     public Set<Coordinate> getLegalCoordinates(Piece piece) {
+        Set<Coordinate> legalCoordinates = new HashSet<>();
+
+        for (int i = 0; i < this.height; i++) {
+            for (int j = 0; j < this.width; j++) {
+                Coordinate coordinate = new Coordinate(i, j);
+
+                if (doesPieceFit(piece.getWidth(), piece.getHeight(), coordinate)) {
+                    legalCoordinates.add(coordinate);
+                }
+            }
+        }
+
+        return legalCoordinates;
+    }
+
+    /**
+     * Gives all possible coordinates to place the piece in the puzzle, sorted.
+     * The area where they are deployed is considered, and the first piece
+     * leads to a less remainder 0 in the cells it was applied to.
+     *
+     * @param piece the piece to place
+     * @return a set of legal coordinates to place the piece
+     */
+    public Set<Coordinate> getLegalCoordinatesSorted(Piece piece) {
         Map<Coordinate, Integer> legalCoordinates = new HashMap<>();
 
         for (int i = 0; i < this.height; i++) {
