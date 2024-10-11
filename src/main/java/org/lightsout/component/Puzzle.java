@@ -2,10 +2,8 @@ package org.lightsout.component;
 
 import org.lightsout.model.Coordinate;
 import org.lightsout.model.PieceInfo;
-import org.lightsout.model.Solvability;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Puzzle implements Cloneable {
 
@@ -51,24 +49,18 @@ public class Puzzle implements Cloneable {
      * @param piecesInfo the set of pieces
      * @return if the puzzle is solvable given this set of pieces
      */
-    public Solvability isSolvable(List<PieceInfo> piecesInfo) {
+    public boolean isSolvable(List<PieceInfo> piecesInfo) {
         int piecesXCount = 0;
 
         for (PieceInfo pieceInfo : piecesInfo)
             piecesXCount += pieceInfo.piece().getAmountOfXs();
 
-        int puzzleTotalRemainderTo0 = 0;
-        for (int i = 0; i < this.height; i++) {
-            for (int j = 0; j < this.width; j++) {
-                if (this.cells[i][j] != 0)
-                    puzzleTotalRemainderTo0 += this.depth - this.cells[i][j];
-            }
-        }
+        int puzzleTotalRemainderTo0 = getTotalRemainderTo0();
 
         boolean sufficientXs = piecesXCount - puzzleTotalRemainderTo0 >= 0;
         boolean isMathPossible = (piecesXCount - puzzleTotalRemainderTo0) % this.depth == 0;
 
-        return new Solvability(sufficientXs, isMathPossible);
+        return sufficientXs && isMathPossible;
     }
 
     public boolean isSolved() {
@@ -86,10 +78,10 @@ public class Puzzle implements Cloneable {
      * Gives all possible coordinates to place the piece in the puzzle.
      *
      * @param piece the piece to place
-     * @return a set of legal coordinates to place the piece
+     * @return a list of legal coordinates to place the piece
      */
-    public Set<Coordinate> getLegalCoordinates(Piece piece) {
-        Set<Coordinate> legalCoordinates = new HashSet<>();
+    public List<Coordinate> getLegalCoordinates(Piece piece) {
+        List<Coordinate> legalCoordinates = new ArrayList<>(); // <coordinate, No affected cells>
 
         for (int i = 0; i < this.height; i++) {
             for (int j = 0; j < this.width; j++) {
@@ -102,34 +94,6 @@ public class Puzzle implements Cloneable {
         }
 
         return legalCoordinates;
-    }
-
-    /**
-     * Gives all possible coordinates to place the piece in the puzzle, sorted.
-     * The area where they are deployed is considered, and the first piece
-     * leads to a less remainder 0 in the cells it was applied to.
-     *
-     * @param piece the piece to place
-     * @return a set of legal coordinates to place the piece
-     */
-    public Set<Coordinate> getLegalCoordinatesSorted(Piece piece) {
-        Map<Coordinate, Integer> legalCoordinates = new HashMap<>();
-
-        for (int i = 0; i < this.height; i++) {
-            for (int j = 0; j < this.width; j++) {
-                Coordinate coordinate = new Coordinate(i, j);
-
-                if (doesPieceFit(piece.getWidth(), piece.getHeight(), coordinate)) {
-                    int remainder = getTotalRemainderTo0AfterApplying(piece, coordinate);
-                    legalCoordinates.put(coordinate, remainder);
-                }
-            }
-        }
-
-        return legalCoordinates.entrySet().stream()
-                .sorted(Map.Entry.comparingByValue())  // Sort by the integer value (remainder)
-                .map(Map.Entry::getKey)  // Extract the Coordinate (the key of the map entry)
-                .collect(Collectors.toCollection(LinkedHashSet::new));  // Collect the result into a LinkedHashSet to preserve order
     }
 
     /**
@@ -165,10 +129,22 @@ public class Puzzle implements Cloneable {
         return puzzle;
     }
 
-    int getTotalRemainderTo0AfterApplying(Piece piece, Coordinate coordinate) {
+    /**
+     * Applies the piece to the board if it doesn't encounter any zeroes.
+     * It is robust.
+     *
+     * @param piece the piece to place on the board
+     * @param coordinate the coordinate to place the piece on
+     * @return null if the piece cannot be placed on the board, or it falls on 0,
+     *         or the new puzzle produced by applying the piece
+     */
+    public Puzzle applyIfNo0(Piece piece, Coordinate coordinate) {
+        if (!doesPieceFit(piece.getWidth(), piece.getHeight(), coordinate))
+            return null;
+
+        Puzzle puzzle = cloneP();
         int x = coordinate.x();
         int y = coordinate.y();
-        int totalRemainderTo0 = 0;
 
         for (int i = 0; i < piece.getHeight(); i++) {
             int currX = x + i;
@@ -176,12 +152,30 @@ public class Puzzle implements Cloneable {
 
             for (int j = 0; j < piece.getWidth(); j++) {
                 if (piece.getCellValue(Coordinate.of(i, j)) == 'X') {
-                    int newCellValue = this.cells[currX][currY] + 1;
-                    if (newCellValue != depth) {
-                        totalRemainderTo0 += this.depth - newCellValue;
-                    }
+                    if (puzzle.cells[currX][currY] == 0)
+                        return null;
+
+                    puzzle.cells[currX][currY]++;
+                    if (puzzle.cells[currX][currY] == depth)
+                        puzzle.cells[currX][currY] = 0;
                 }
                 currY++;
+            }
+        }
+
+        return puzzle;
+    }
+
+    public int getTotalRemainderTo0() {
+        int totalRemainderTo0 = 0;
+
+        for (int i = 0; i < this.height; i++) {
+            for (int j = 0; j < this.width; j++) {
+                int cellValue = this.cells[i][j];
+
+                if (cellValue != 0) {
+                    totalRemainderTo0 += this.depth - cellValue;
+                }
             }
         }
 
@@ -209,7 +203,7 @@ public class Puzzle implements Cloneable {
         }
     }
 
-    private boolean doesPieceFit(int pieceWidth, int pieceHeight, Coordinate coordinate) {
+    boolean doesPieceFit(int pieceWidth, int pieceHeight, Coordinate coordinate) {
         boolean fitsWidth = coordinate.y() + pieceWidth <= this.width;
         boolean fitsHeight = coordinate.x() + pieceHeight <= this.height;
         return fitsWidth && fitsHeight;

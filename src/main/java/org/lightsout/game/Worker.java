@@ -4,7 +4,6 @@ import org.lightsout.component.Piece;
 import org.lightsout.component.Puzzle;
 import org.lightsout.model.Coordinate;
 import org.lightsout.model.PieceInfo;
-import org.lightsout.model.Solvability;
 
 import java.util.*;
 
@@ -27,39 +26,40 @@ public class Worker extends GameConfig implements Runnable {
         if (Thread.currentThread().isInterrupted() || FINISHED)
             return;
 
-        Puzzle puzzle = puzzles.getLast();
+        if (index == 0) {
+            LOGGER.info("Thread id " + Thread.currentThread().threadId() + ": my first iteration");
+        }
+
+        Puzzle currPuzzle = puzzles.getLast();
 
         if (index < piecesSize) {
             PieceInfo pieceInfo = pieces.get(index);
             Piece piece = pieceInfo.piece();
             int pieceIndex = pieceInfo.coordinateOutputIndex();
-            Set<Coordinate> legalCoordinates = puzzle.getLegalCoordinatesSorted(piece);
+            List<Coordinate> legalCoordinates = pieceInfo.legalCoordinates();
 
+            index++;
             for (Coordinate coordinate : legalCoordinates) {
-                Puzzle newPuzzle = puzzle.apply(piece, coordinate);
+                Puzzle newPuzzle = currPuzzle.apply(piece, coordinate);
+//                LOGGER.info("Thread id " + Thread.currentThread().threadId() + ": " +
+//                        "\nOld puzzle: \n" + currPuzzle +
+//                        "\nPiece applied: \n" + piece +
+//                        "\nNew puzzle: \n" + newPuzzle +
+//                        "\nCoordinate: \n" + coordinate +
+//                        "\nPieces left: " + (piecesSize - index));
 
-                LOGGER.info("Thread id " + Thread.currentThread().threadId() + ": " +
-                        "\nOld puzzle: \n" + puzzle +
-                        "\nPiece applied: \n" + piece +
-                        "\nNew puzzle: \n" + newPuzzle +
-                        "\nCoordinate: \n" + coordinate +
-                        "\nPieces left: " + (piecesSize - index));
+                boolean isSolvable = newPuzzle.isSolvable(pieces.subList(index, piecesSize));
 
-                Solvability solvability = newPuzzle.isSolvable(pieces.subList(index + 1, piecesSize));
-                if (solvability.isMathPossible() && solvability.sufficientXs()) {
+                if (isSolvable) {
                     this.coordinates[pieceIndex] = coordinate;
                     puzzles.add(newPuzzle);
-                    index++;
                     run();
                     puzzles.removeLast(); // equivalent to puzzles.remove(newPuzzle);
-                    index--;
-                } else if (!solvability.sufficientXs()) {
-                    // next coordinates won't have sufficient Xs either
-                    break;
                 }
             }
+            index--;
         } else if (index == piecesSize) {
-            if (puzzle.isSolved()) {
+            if (currPuzzle.isSolved()) {
                 synchronized (Worker.this) {
                     if (!FINISHED) {
                         FINISHED = true;

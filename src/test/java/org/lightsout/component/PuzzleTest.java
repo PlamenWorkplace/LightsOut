@@ -6,7 +6,6 @@ import org.lightsout.model.PieceInfo;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -59,7 +58,7 @@ public class PuzzleTest {
         Puzzle puzzle = new Puzzle("2", "100,101,011");
         Piece piece = new Piece("X,X,X");
 
-        Set<Coordinate> legalCoordinates = puzzle.getLegalCoordinates(piece);
+        List<Coordinate> legalCoordinates = puzzle.getLegalCoordinates(piece);
 
         assertEquals(legalCoordinates.size(), 3);
         assertTrue(legalCoordinates.contains(Coordinate.of(0, 0)));
@@ -72,20 +71,20 @@ public class PuzzleTest {
         Puzzle puzzle = new Puzzle("2", "011,000,100");
         List<PieceInfo> pieces = new ArrayList<>() {};
         Piece piece1 = new Piece("X,X,X");
-        pieces.add(new PieceInfo(piece1, 1));
+        pieces.add(new PieceInfo(piece1, 1, null));
         Piece piece2 = new Piece(".X,XX");
-        pieces.add(new PieceInfo(piece1, 2));
+        pieces.add(new PieceInfo(piece2, 2, null));
         Piece piece3 = new Piece("XX,X.");
-        pieces.add(new PieceInfo(piece1, 3));
+        pieces.add(new PieceInfo(piece3, 3, null));
         Piece piece4 = new Piece("XX");
-        pieces.add(new PieceInfo(piece1, 4));
+        pieces.add(new PieceInfo(piece4, 4, null));
         Piece piece5 = new Piece(".XX,XX.");
-        pieces.add(new PieceInfo(piece1, 5));
+        pieces.add(new PieceInfo(piece5, 5, null));
 
-        assertTrue(puzzle.isSolvable(pieces).isMathPossible());
+        assertTrue(puzzle.isSolvable(pieces));
 
-        pieces.add(new PieceInfo(new Piece("X"), 6));
-        assertFalse(puzzle.isSolvable(pieces).isMathPossible());
+        pieces.add(new PieceInfo(new Piece("X"), 6, null));
+        assertFalse(puzzle.isSolvable(pieces));
     }
 
     @Test
@@ -98,15 +97,14 @@ public class PuzzleTest {
     }
 
     @Test
-    void testGetTotalRemainderTo0AfterApplying() {
-        Puzzle puzzle = new Puzzle("2", "011,000,100");
-        Piece piece = new Piece("X,X,X");
+    void testGetTotalRemainderTo0() {
+        Puzzle puzzle1 = new Puzzle("2", "011,000,100");
+        int remainder1 = puzzle1.getTotalRemainderTo0();
+        assertEquals(remainder1, 3);
 
-        int remainder1 = puzzle.getTotalRemainderTo0AfterApplying(piece, Coordinate.of(0, 0));
-        assertEquals(remainder1, 2);
-
-        int remainder2 = puzzle.getTotalRemainderTo0AfterApplying(piece, Coordinate.of(0, 2));
-        assertEquals(remainder2, 2);
+        Puzzle puzzle2 = new Puzzle("3", "011,000,100");
+        int remainder2 = puzzle2.getTotalRemainderTo0();
+        assertEquals(remainder2, 6);
     }
 
 }

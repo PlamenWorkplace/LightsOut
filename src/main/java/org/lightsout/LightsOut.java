@@ -31,6 +31,8 @@ public class LightsOut {
         String line2;
         String line3;
 
+        // The 9th puzzle has a 10-second delay before getting solved, although the delay
+        // largely depends on which puzzle piece you start with (it can fluctuate between 2-20 seconds).
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(
                 Objects.requireNonNull(classLoader.getResourceAsStream("games/01.txt")), StandardCharsets.UTF_8))) {
             line1 = reader.readLine();
